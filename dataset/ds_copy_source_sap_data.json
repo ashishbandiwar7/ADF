@@ -1,0 +1,75 @@
+{
+	"name": "ds_copy_source_sap_data",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureDataLakeStorageadls",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"FileName": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Excel",
+		"typeProperties": {
+			"sheetName": "Sheet1",
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@dataset().FileName",
+					"type": "Expression"
+				},
+				"fileSystem": "source"
+			},
+			"firstRowAsHeader": true
+		},
+		"schema": [
+			{
+				"name": "MANDT",
+				"type": "String"
+			},
+			{
+				"name": "BUKRS",
+				"type": "String"
+			},
+			{
+				"name": "BELNR",
+				"type": "String"
+			},
+			{
+				"name": "GJAHR",
+				"type": "String"
+			},
+			{
+				"name": "BLART",
+				"type": "String"
+			},
+			{
+				"name": "BLDAT",
+				"type": "String"
+			},
+			{
+				"name": "BUDAT",
+				"type": "String"
+			},
+			{
+				"name": "MONAT",
+				"type": "String"
+			},
+			{
+				"name": "USNAM",
+				"type": "String"
+			},
+			{
+				"name": "TCODE",
+				"type": "String"
+			},
+			{
+				"name": "Last_Updated",
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

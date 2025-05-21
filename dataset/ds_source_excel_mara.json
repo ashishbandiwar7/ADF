@@ -1,0 +1,87 @@
+{
+	"name": "ds_source_excel_mara",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureDataLakeStorageadls",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Excel",
+		"typeProperties": {
+			"sheetName": "Sheet1",
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "mara_dummy_data.xlsx",
+				"fileSystem": "source"
+			},
+			"firstRowAsHeader": true
+		},
+		"schema": [
+			{
+				"name": "MANDT",
+				"type": "String"
+			},
+			{
+				"name": "MATNR",
+				"type": "String"
+			},
+			{
+				"name": "ERSDA",
+				"type": "String"
+			},
+			{
+				"name": "ERNAM",
+				"type": "String"
+			},
+			{
+				"name": "LAEDA",
+				"type": "String"
+			},
+			{
+				"name": "AENAM",
+				"type": "String"
+			},
+			{
+				"name": "MTART",
+				"type": "String"
+			},
+			{
+				"name": "MBRSH",
+				"type": "String"
+			},
+			{
+				"name": "MATKL",
+				"type": "String"
+			},
+			{
+				"name": "MEINS",
+				"type": "String"
+			},
+			{
+				"name": "BRGEW",
+				"type": "String"
+			},
+			{
+				"name": "NTGEW",
+				"type": "String"
+			},
+			{
+				"name": "GEWEI",
+				"type": "String"
+			},
+			{
+				"name": "VOLUM",
+				"type": "String"
+			},
+			{
+				"name": "VOLEH",
+				"type": "String"
+			},
+			{
+				"name": "Last_Updated",
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

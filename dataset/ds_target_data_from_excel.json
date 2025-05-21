@@ -1,0 +1,17 @@
+{
+	"name": "ds_target_data_from_excel",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSqlDatabaseTargetDB",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "test"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

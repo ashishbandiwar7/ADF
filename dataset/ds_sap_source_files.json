@@ -1,0 +1,21 @@
+{
+	"name": "ds_sap_source_files",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureDataLakeStorageadls",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Excel",
+		"typeProperties": {
+			"sheetName": "Sheet1",
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileSystem": "source"
+			},
+			"firstRowAsHeader": true
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

@@ -1,0 +1,303 @@
+{
+	"name": "pl_final_increamental_load",
+	"properties": {
+		"activities": [
+			{
+				"name": "ForEach final increamental load",
+				"type": "ForEach",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@pipeline().parameters.TableNames",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "If Condition to check material table",
+							"type": "IfCondition",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@contains(item().tableType,'MATERIAL')",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "Copy increamental data data material table",
+										"type": "Copy",
+										"dependsOn": [
+											{
+												"activity": "Lookup TableLoadTime",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											},
+											{
+												"activity": "Lookup material tables",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "AzureSqlSource",
+												"sqlReaderQuery": {
+													"value": "SELECT * FROM\n@{item().tableName}\nWHERE \n@{item().waterMarkColumn} > '@{formatDateTime(activity('Lookup TableLoadTime').output.firstRow.LastLoadedTime,'yyyy-MM-ddTHH:mm:ss.fff')}'\nAND\n@{item().waterMarkColumn} <= '@{formatDateTime(activity('Lookup material tables').output.firstRow.Last_Updated,'yyyy-MM-ddTHH:mm:ss.fff')}'",
+													"type": "Expression"
+												},
+												"queryTimeout": "02:00:00",
+												"partitionOption": "None"
+											},
+											"sink": {
+												"type": "AzureSqlSink",
+												"writeBehavior": "insert",
+												"sqlWriterUseTableLock": false,
+												"disableMetricsCollection": false
+											},
+											"enableStaging": false,
+											"translator": {
+												"type": "TabularTranslator",
+												"typeConversion": true,
+												"typeConversionSettings": {
+													"allowDataTruncation": true,
+													"treatBooleanAsNumber": false
+												}
+											}
+										},
+										"inputs": [
+											{
+												"referenceName": "ds_source_sql_stage_db",
+												"type": "DatasetReference",
+												"parameters": {
+													"SchemaName": {
+														"value": "@item().schemaName",
+														"type": "Expression"
+													},
+													"TableName": {
+														"value": "@item().tableName",
+														"type": "Expression"
+													}
+												}
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "ds_target_copy_increamental_refresh",
+												"type": "DatasetReference",
+												"parameters": {
+													"SchemaName": {
+														"value": "@item().schemaName",
+														"type": "Expression"
+													},
+													"TableName": {
+														"value": "@item().tableName",
+														"type": "Expression"
+													}
+												}
+											}
+										]
+									},
+									{
+										"name": "Lookup TableLoadTime",
+										"type": "Lookup",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "AzureSqlSource",
+												"sqlReaderQuery": {
+													"value": "SELECT MAX(LastLoadedTime) AS LastLoadedTime FROM TableLoadTime WHERE TableName = '@{item().tableName}';",
+													"type": "Expression"
+												},
+												"queryTimeout": "02:00:00",
+												"partitionOption": "None"
+											},
+											"dataset": {
+												"referenceName": "ds_source_sql_tableloadtime",
+												"type": "DatasetReference"
+											}
+										}
+									},
+									{
+										"name": "Lookup material tables",
+										"type": "Lookup",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "AzureSqlSource",
+												"sqlReaderQuery": {
+													"value": "SELECT MAX(Last_Updated) AS Last_Updated FROM @{item().tableName}",
+													"type": "Expression"
+												},
+												"queryTimeout": "02:00:00",
+												"partitionOption": "None"
+											},
+											"dataset": {
+												"referenceName": "ds_source_lookup_stage_db",
+												"type": "DatasetReference",
+												"parameters": {
+													"SchemaName": {
+														"value": "@item().schemaName",
+														"type": "Expression"
+													},
+													"TableName": {
+														"value": "@item().tableName",
+														"type": "Expression"
+													}
+												}
+											}
+										}
+									},
+									{
+										"name": "Stored procedure to update TableLoadTime",
+										"type": "SqlServerStoredProcedure",
+										"dependsOn": [
+											{
+												"activity": "Copy increamental data data material table",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"storedProcedureName": "[dbo].[usp_write_TableLoadTime]",
+											"storedProcedureParameters": {
+												"last_updated": {
+													"value": {
+														"value": "@activity('Lookup material tables').output.firstRow.Last_Updated",
+														"type": "Expression"
+													},
+													"type": "Datetime"
+												},
+												"tableName": {
+													"value": {
+														"value": "@item().tableName",
+														"type": "Expression"
+													},
+													"type": "String"
+												}
+											}
+										},
+										"linkedServiceName": {
+											"referenceName": "AzureSqlDatabaseTargetDB",
+											"type": "LinkedServiceReference"
+										}
+									}
+								]
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"TableNames": {
+				"type": "array",
+				"defaultValue": [
+					{
+						"schemaName": "dbo",
+						"tableName": "BSEG",
+						"watermarkColumn": "Last_Updated",
+						"tableType": "NA"
+					},
+					{
+						"schemaName": "dbo",
+						"tableName": "BKPF",
+						"watermarkColumn": "Last_Updated",
+						"tableType": "NA"
+					},
+					{
+						"schemaName": "dbo",
+						"tableName": "EKKO",
+						"watermarkColumn": "Last_Updated",
+						"tableType": "NA"
+					},
+					{
+						"schemaName": "dbo",
+						"tableName": "EKPO",
+						"watermarkColumn": "Last_Updated",
+						"tableType": "NA"
+					},
+					{
+						"schemaName": "dbo",
+						"tableName": "MARA",
+						"watermarkColumn": "Last_Updated",
+						"tableType": "MATERIAL"
+					},
+					{
+						"schemaName": "dbo",
+						"tableName": "MKPF",
+						"watermarkColumn": "Last_Updated",
+						"tableType": "NA"
+					},
+					{
+						"schemaName": "dbo",
+						"tableName": "MLGN",
+						"watermarkColumn": "Last_Updated",
+						"tableType": "NA"
+					},
+					{
+						"schemaName": "dbo",
+						"tableName": "MLGT",
+						"watermarkColumn": "Last_Updated",
+						"tableType": "NA"
+					},
+					{
+						"schemaName": "dbo",
+						"tableName": "MSEG",
+						"watermarkColumn": "Last_Updated",
+						"tableType": "NA"
+					},
+					{
+						"schemaName": "dbo",
+						"tableName": "T001",
+						"watermarkColumn": "Last_Updated",
+						"tableType": "NA"
+					}
+				]
+			}
+		},
+		"variables": {
+			"Test": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-05-19T18:24:32Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

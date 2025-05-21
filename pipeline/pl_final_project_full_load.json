@@ -1,0 +1,184 @@
+{
+	"name": "pl_final_project_full_load",
+	"properties": {
+		"activities": [
+			{
+				"name": "For Each Full Load",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Get Metadata Source SAP Files",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Get Metadata Source SAP Files').output.childItems",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Copy Full Load",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "ExcelSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": true,
+										"enablePartitionDiscovery": false
+									}
+								},
+								"sink": {
+									"type": "AzureSqlSink",
+									"writeBehavior": "insert",
+									"sqlWriterUseTableLock": false,
+									"disableMetricsCollection": false
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "ds_copy_source_sap_data",
+									"type": "DatasetReference",
+									"parameters": {
+										"FileName": {
+											"value": "@item().name",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ds_target_sql_sap_tables",
+									"type": "DatasetReference",
+									"parameters": {
+										"SchemaName": {
+											"value": "dbo",
+											"type": "Expression"
+										},
+										"TableName": {
+											"value": "@replace(item().name, '.xlsx', '')",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			},
+			{
+				"name": "Get Metadata Source SAP Files",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "ds_source_final_project_full_load",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					}
+				}
+			}
+		],
+		"parameters": {
+			"TableNames": {
+				"type": "array",
+				"defaultValue": [
+					{
+						"tableName": "MARA",
+						"tableSchemaName": "dbo",
+						"waterMarkColumn": "Last_Updated"
+					},
+					{
+						"tableName": "BSEG",
+						"tableSchemaName": "dbo",
+						"waterMarkColumn": "Last_Updated"
+					},
+					{
+						"tableName": "BKPF",
+						"tableSchemaName": "dbo",
+						"waterMarkColumn": "Last_Updated"
+					},
+					{
+						"tableName": "T001",
+						"tableSchemaName": "dbo",
+						"waterMarkColumn": "Last_Updated"
+					},
+					{
+						"tableName": "EKKO",
+						"tableSchemaName": "dbo",
+						"waterMarkColumn": "Last_Updated"
+					},
+					{
+						"tableName": "EKPO",
+						"tableSchemaName": "dbo",
+						"waterMarkColumn": "Last_Updated"
+					},
+					{
+						"tableName": "MSEG",
+						"tableSchemaName": "dbo",
+						"waterMarkColumn": "Last_Updated"
+					},
+					{
+						"tableName": "MKPF",
+						"tableSchemaName": "dbo",
+						"waterMarkColumn": "Last_Updated"
+					},
+					{
+						"tableName": "MLGN",
+						"tableSchemaName": "dbo",
+						"waterMarkColumn": "Last_Updated"
+					},
+					{
+						"tableName": "MLGT",
+						"tableSchemaName": "dbo",
+						"waterMarkColumn": "Last_Updated"
+					}
+				]
+			}
+		},
+		"folder": {
+			"name": "Others"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-05-19T11:16:05Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}
